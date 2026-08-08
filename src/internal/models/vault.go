@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"src/internal/storage"
+	"time"
+)
 
 type Vault struct {
 	Version   string    `json:"version"`
@@ -19,6 +22,16 @@ type Entry struct {
 	Notes     string    `json:"notes"`
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
+}
+
+func NewVault() *Vault {
+	now := time.Now()
+	return &Vault{
+		Version:   storage.FileVersion,
+		CreatedAt: now,
+		UpdatedAt: now,
+		Entries:   make([]Entry, 0),
+	}
 }
 
 func NewEntry(title, username, password, url, notes string) *Entry {
