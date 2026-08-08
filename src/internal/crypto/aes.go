@@ -4,16 +4,11 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
-	"encoding/base64"
 	"fmt"
+	"src/internal/storage"
 )
 
-type EncryptedPayload struct {
-	Ciphertext string `json:"ciphertext"`
-	Nonce      string `json:"nonce"`
-}
-
-func Encrypt(plaintext []byte, key []byte) (*EncryptedPayload, error) {
+func Encrypt(plaintext []byte, key []byte) (*storage.EncryptedData, error) {
 	block, err := aes.NewCipher(key)
 	if err != nil {
 		return nil, fmt.Errorf("Error when creating cipher: %w", err)
@@ -31,25 +26,15 @@ func Encrypt(plaintext []byte, key []byte) (*EncryptedPayload, error) {
 
 	ciphertext := gcm.Seal(nil, nonce, plaintext, nil)
 
-	return &EncryptedPayload{
-		Ciphertext: base64.StdEncoding.EncodeToString(ciphertext),
-		Nonce:      base64.StdEncoding.EncodeToString(nonce),
+	return &storage.EncryptedData{
+		Ciphertext: ciphertext,
+		Nonce:      nonce,
 	}, nil
 }
 
-func Decrypt(payload *EncryptedPayload, key []byte) ([]byte, error) {
-	if payload == nil {
+func Decrypt(data *storage.EncryptedData, key []byte) ([]byte, error) {
+	if data == nil {
 		return nil, fmt.Errorf("Payload is nil")
-	}
-
-	ciphertext, err := base64.StdEncoding.DecodeString(payload.Ciphertext)
-	if err != nil {
-		return nil, fmt.Errorf("Error when decoding ciphertext: %w", err)
-	}
-
-	nonce, err := base64.StdEncoding.DecodeString(payload.Nonce)
-	if err != nil {
-		return nil, fmt.Errorf("Error when decoding nonce: %w", err)
 	}
 
 	block, err := aes.NewCipher(key)
@@ -62,7 +47,7 @@ func Decrypt(payload *EncryptedPayload, key []byte) ([]byte, error) {
 		return nil, fmt.Errorf("Error when creating GCM: %w", err)
 	}
 
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	plaintext, err := gcm.Open(nil, data.Nonce, data.Ciphertext, nil)
 	if err != nil {
 		return nil, fmt.Errorf("Error when decrypting: %w", err)
 	}
