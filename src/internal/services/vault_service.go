@@ -323,3 +323,49 @@ func (s *VaultService) atomicWrite(path string, data []byte) error {
 
 	return nil
 }
+
+func (s *VaultService) ChangeMasterPassword(newMasterPassword string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if !s.isUnlocked {
+		return fmt.Errorf("vault is locked")
+	}
+
+	params := crypto.DefaultArgon2Params()
+	newSalt, err := crypto.GenerateSalt(params.SaltLength)
+	if err != nil {
+		return fmt.Errorf("failure generating new salt: %w", err)
+	}
+
+	newKEK, err := crypto.DeriveKey(newMasterPassword, newSalt, &params)
+	if err != nil {
+		return fmt.Errorf("failure deiriving new KEK: %w,", err)
+	}
+	defer crypto.Zeroize(newKEK)
+
+	newWrappedVEK, err := crypto.WrapVEK(s.vek, newKEK)
+	if err != nil {
+		return fmt.Errorf("error wrapping VEK with new KEK: %w", err)
+	}
+
+	fileData, err := os.ReadFile(s.vaultPath)
+	if err != nil {
+		return fmt.Errorf("error reading vault file: %w", err)
+	}
+
+	var vaultFile storage.VaultFile
+	if err := json.Unmarshal(fileData, &vaultFile); err != nil {
+		return fmt.Errorf("error unmarshalling vault file: %w", err)
+	}
+
+	vaultFile.KDF.Salt = newSalt
+	vaultFile.WrappedVEK = *newWrappedVEK
+
+	updatedData, err := json.MarshalIndent(vaultFile, "", "  ")
+	if err != nil {
+		return fmt.Errorf("error marshalling updated vault file: %w", err)
+	}
+
+	return s.atomicWrite(s.vaultPath, updatedData)
+}
