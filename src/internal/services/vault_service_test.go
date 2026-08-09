@@ -13,7 +13,7 @@ import (
 // 16 KB de memória ao invés de 64 MB — rápido e suficiente para validar a lógica.
 func testKDFParams() crypto.Argon2Params {
 	return crypto.Argon2Params{
-		Memory:      16,   // 16 KiB (mínimo do Argon2id)
+		Memory:      16, // 16 KiB (mínimo do Argon2id)
 		Iterations:  1,
 		Parallelism: 1,
 		SaltLength:  16,
@@ -265,7 +265,7 @@ func TestLockVault(t *testing.T) {
 
 	// GetEntries deve retornar nil ou vazio
 	entries := svc.GetEntries()
-	if entries != nil && len(entries) > 0 {
+	if len(entries) > 0 {
 		t.Fatal("GetEntries em vault bloqueado deveria retornar nil ou vazio")
 	}
 }
