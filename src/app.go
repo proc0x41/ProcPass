@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"src/internal/models"
 	"src/internal/services"
+
+	"github.com/wailsapp/wails/v2/pkg/runtime"
 )
 
 // App struct
@@ -53,6 +55,31 @@ func (a *App) DeleteEntry(id string) error {
 
 func (a *App) GetEntries() []models.Entry {
 	return a.vaultSvc.GetEntries()
+}
+
+// SelectNewVaultPath opens a native save dialog so the user can pick where
+// the new vault file will be created. Returns an empty string if cancelled.
+func (a *App) SelectNewVaultPath() (string, error) {
+	return runtime.SaveFileDialog(a.ctx, runtime.SaveDialogOptions{
+		Title:           "Choose where to save your vault",
+		DefaultFilename: "vault.procpass",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "ProcPass Vault (*.procpass;*.json)", Pattern: "*.procpass;*.json"},
+			{DisplayName: "All Files (*.*)", Pattern: "*.*"},
+		},
+	})
+}
+
+// SelectVaultPath opens a native open dialog so the user can pick an
+// existing vault file. Returns an empty string if cancelled.
+func (a *App) SelectVaultPath() (string, error) {
+	return runtime.OpenFileDialog(a.ctx, runtime.OpenDialogOptions{
+		Title: "Select your vault file",
+		Filters: []runtime.FileFilter{
+			{DisplayName: "ProcPass Vault (*.procpass;*.json)", Pattern: "*.procpass;*.json"},
+			{DisplayName: "All Files (*.*)", Pattern: "*.*"},
+		},
+	})
 }
 
 func (a *App) Greet(name string) string {

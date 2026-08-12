@@ -14,6 +14,10 @@ export function Greet(arg1:string):Promise<string>;
 
 export function LockVault():Promise<void>;
 
+export function SelectNewVaultPath():Promise<string>;
+
+export function SelectVaultPath():Promise<string>;
+
 export function UnlockVault(arg1:string,arg2:string):Promise<models.Vault>;
 
 export function UpdateEntry(arg1:string,arg2:string,arg3:string,arg4:string,arg5:string,arg6:string):Promise<void>;

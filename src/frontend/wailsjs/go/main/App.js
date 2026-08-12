@@ -26,6 +26,14 @@ export function LockVault() {
   return window['go']['main']['App']['LockVault']();
 }
 
+export function SelectNewVaultPath() {
+  return window['go']['main']['App']['SelectNewVaultPath']();
+}
+
+export function SelectVaultPath() {
+  return window['go']['main']['App']['SelectVaultPath']();
+}
+
 export function UnlockVault(arg1, arg2) {
   return window['go']['main']['App']['UnlockVault'](arg1, arg2);
 }
